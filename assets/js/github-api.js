@@ -22,8 +22,8 @@ class GitHubAPI {
     return (
       this.owner &&
       this.repo &&
-      this.owner !== "1Mangesh1" &&
-      this.repo !== "trackrecord"
+      this.owner !== "your-github-username" &&
+      this.repo !== "your-repository-name"
     );
   }
 
