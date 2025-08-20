@@ -250,23 +250,6 @@ class TrackRecordApp {
   }
 
   /**
-   * Get form data from the form
-   * @returns {Object} Form data object
-   */
-  getFormData() {
-    const form = document.getElementById("trackRecordForm");
-    const formData = new FormData(form);
-
-    const data = {};
-    APP_CONFIG.CSV_HEADERS.forEach((header) => {
-      const fieldName = this.getFieldNameByHeader(header);
-      data[header] = formData.get(fieldName) || "";
-    });
-
-    return data;
-  }
-
-  /**
    * Get field name by CSV header
    * @param {string} header - CSV header
    * @returns {string} Field name
@@ -285,6 +268,23 @@ class TrackRecordApp {
       Tags: "tags",
     };
     return fieldMap[header];
+  }
+
+  /**
+   * Get form data from the main form
+   */
+  getFormData() {
+    const form = document.getElementById("trackRecordForm");
+    const formData = new FormData(form);
+
+    // Map form field names to CSV headers
+    const data = {};
+    APP_CONFIG.CSV_HEADERS.forEach((header) => {
+      const fieldName = this.getFieldNameByHeader(header);
+      data[header] = formData.get(fieldName) || "";
+    });
+
+    return data;
   }
 
   /**
@@ -473,50 +473,53 @@ class TrackRecordApp {
     const row = document.createElement("tr");
 
     row.innerHTML = `
-              <td>${Utils.formatDate(record.Date)}</td>
-              <td title="${Utils.escapeHtml(
+              <td data-label="Date">${Utils.formatDate(record.Date)}</td>
+              <td data-label="Project/Task" title="${Utils.escapeHtml(
                 record["Project/Task"]
               )}">${Utils.truncateText(
       Utils.escapeHtml(record["Project/Task"]),
       30
     )}</td>
-              <td>${Utils.createStatusBadge(record.Status).outerHTML}</td>
-              <td title="${Utils.escapeHtml(
+              <td data-label="Status">${
+                Utils.createStatusBadge(record.Status).outerHTML
+              }</td>
+              <td data-label="Context" title="${Utils.escapeHtml(
                 record.Context
               )}">${Utils.truncateText(
       Utils.escapeHtml(record.Context),
       50
     )}</td>
-              <td title="${Utils.escapeHtml(
+              <td data-label="Skills & Tools" title="${Utils.escapeHtml(
                 record["Skills & Tools"]
               )}">${Utils.truncateText(
       Utils.escapeHtml(record["Skills & Tools"]),
       30
     )}</td>
-              <td title="${Utils.escapeHtml(
+              <td data-label="Outcome" title="${Utils.escapeHtml(
                 record["Outcome/Deliverable"]
               )}">${Utils.truncateText(
       Utils.escapeHtml(record["Outcome/Deliverable"]),
       50
     )}</td>
-              <td>${Utils.escapeHtml(record["Time Spent"])}</td>
-              <td title="${Utils.escapeHtml(record.Tags)}">${Utils.truncateText(
-      Utils.escapeHtml(record.Tags),
-      30
-    )}</td>
-              <td title="${Utils.escapeHtml(
+              <td data-label="Time Spent">${Utils.escapeHtml(
+                record["Time Spent"]
+              )}</td>
+              <td data-label="Tags" title="${Utils.escapeHtml(
+                record.Tags
+              )}">${Utils.truncateText(Utils.escapeHtml(record.Tags), 30)}</td>
+              <td data-label="Learnings" title="${Utils.escapeHtml(
                 record["Key Learnings/Challenges"]
               )}">${Utils.truncateText(
       Utils.escapeHtml(record["Key Learnings/Challenges"]),
       50
     )}</td>
-              <td title="${Utils.escapeHtml(
+              <td data-label="Next Steps" title="${Utils.escapeHtml(
                 record["Next Steps"]
               )}">${Utils.truncateText(
       Utils.escapeHtml(record["Next Steps"]),
       50
     )}</td>
-              <td class="table-actions">
+              <td class="table-actions" data-label="Actions">
                 <button class="edit-btn" onclick="trackRecordApp.showEditModal(${index})" title="Edit">
                   <i class="fas fa-edit"></i>
                 </button>
