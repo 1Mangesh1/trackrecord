@@ -78,21 +78,10 @@ jobs:
           done
           echo "File structure validation passed"
 
-      - name: Create deployment package
-        run: |
-          # Create a clean deployment directory
-          mkdir -p deploy
-          cp -r index.html README.md assets .github deploy/
-
-          # Remove development files if any
-          rm -rf deploy/.github/workflows/deploy.yml
-
-          echo "Deployment package created"
-
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: deploy
+          path: .
 
   # Deployment job
   deploy:
