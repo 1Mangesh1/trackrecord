@@ -1,0 +1,143 @@
+name: Deploy to GitHub Pages
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+    branches: [main, master]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: "pages"
+  cancel-in-progress: false
+
+jobs:
+  # Build job
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "18"
+          cache: "npm"
+
+      - name: Install dependencies
+        run: |
+          # Since this is a static site, we don't have npm dependencies
+          # But we can add validation steps here if needed
+          echo "No npm dependencies to install for static site"
+
+      - name: Validate HTML
+        run: |
+          # Basic HTML validation
+          if ! grep -q '<!DOCTYPE html>' index.html; then
+            echo "Error: index.html is missing DOCTYPE declaration"
+            exit 1
+          fi
+          echo "HTML validation passed"
+
+      - name: Validate CSS
+        run: |
+          # Basic CSS validation
+          if [ ! -f "assets/css/styles.css" ]; then
+            echo "Error: CSS file not found"
+            exit 1
+          fi
+          echo "CSS validation passed"
+
+      - name: Validate JavaScript
+        run: |
+          # Basic JavaScript validation
+          if [ ! -f "assets/js/app.js" ]; then
+            echo "Error: JavaScript files not found"
+            exit 1
+          fi
+          echo "JavaScript validation passed"
+
+      - name: Check file structure
+        run: |
+          # Verify required files exist
+          required_files=(
+            "index.html"
+            "README.md"
+            "assets/css/styles.css"
+            "assets/js/config.js"
+            "assets/js/utils.js"
+            "assets/js/github-api.js"
+            "assets/js/app.js"
+          )
+
+          for file in "${required_files[@]}"; do
+            if [ ! -f "$file" ]; then
+              echo "Error: Required file $file not found"
+              exit 1
+            fi
+          done
+          echo "File structure validation passed"
+
+      - name: Create deployment package
+        run: |
+          # Create a clean deployment directory
+          mkdir -p deploy
+          cp -r index.html README.md assets .github deploy/
+
+          # Remove development files if any
+          rm -rf deploy/.github/workflows/deploy.yml
+
+          echo "Deployment package created"
+
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: deploy
+
+  # Deployment job
+  deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    needs: build
+
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
+
+      - name: Verify deployment
+        run: |
+          echo "Deployment completed successfully!"
+          echo "Your site is now available at: ${{ steps.deployment.outputs.page_url }}"
+
+  # Post-deployment notification
+  notify:
+    runs-on: ubuntu-latest
+    needs: deploy
+    if: always()
+
+    steps:
+      - name: Deployment Status
+        run: |
+          if [ "${{ needs.deploy.result }}" == "success" ]; then
+            echo "✅ Deployment successful!"
+            echo "🌐 Your TrackRecord app is now live at: ${{ needs.deploy.outputs.page_url }}"
+            echo ""
+            echo "📝 Next steps:"
+            echo "1. Update config.js with your GitHub repository details"
+            echo "2. Create a CSV file named 'track_records.csv' in your repository"
+            echo "3. Set up GitHub Personal Access Token for write access"
+            echo "4. Test the application functionality"
+          else
+            echo "❌ Deployment failed!"
+            echo "Check the build logs for more details"
+          fi
