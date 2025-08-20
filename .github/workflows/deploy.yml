@@ -25,17 +25,10 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: "18"
-          cache: "npm"
-
-      - name: Install dependencies
+      # No Node.js setup needed for static site
+      - name: Validate static site
         run: |
-          # Since this is a static site, we don't have npm dependencies
-          # But we can add validation steps here if needed
-          echo "No npm dependencies to install for static site"
+          echo "Validating static site files..."
 
       - name: Validate HTML
         run: |
